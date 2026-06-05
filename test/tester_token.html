@@ -1,0 +1,24 @@
+<html>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDF1abH76lsrzwNOve6NNPI9hLZhxlInng",
+    authDomain: "new-app-1e4e2.firebaseapp.com",
+    projectId: "new-app-1e4e2"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const userCredential = await signInWithEmailAndPassword(
+    auth,
+    "ce25b038@iittp.ac.in",
+    "Suren@0907"
+  );
+
+  const token = await userCredential.user.getIdToken();
+  document.body.innerText = token;
+</script>
+</html>
