@@ -1,20 +1,103 @@
-<<<<<<< HEAD
-# home_app
+# HoME App
 
-A new Flutter project.
+Flutter hostel management app with a Node.js/Express backend.
 
-## Getting Started
+## What This Branch Adds
 
-This project is a starting point for a Flutter application.
+- A shared Flutter `ApiClient` for backend calls.
+- API-backed hostel, room, add-room, add-hostel, room-detail, inspection-submit, and inspection-history flows.
+- A local mock API server for quick frontend integration testing.
+- Local dev auth support for the real Express backend using `Authorization: Bearer dev:admin`.
+- MySQL seed data for testing the real backend.
 
-A few resources to get you started if this is your first Flutter project:
+## Quick Local Demo
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Use this when you want to test the Flutter frontend without setting up MySQL:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
-# HoME-App
->>>>>>> 1a0159159ec0dbc6d59526da516f0dd8883f7dfc
+```bash
+node mock_server.js
+flutter run -d chrome
+```
+
+Open the Flutter URL shown in the terminal, then log in with:
+
+```text
+User ID: admin
+Password: anything
+```
+
+The password field is ignored in local demo mode.
+
+## Real Backend Setup
+
+The real backend lives in `server/` and uses Express, Sequelize, MySQL, and Firebase Admin.
+
+1. Install and start MySQL.
+2. Create the database:
+
+```sql
+CREATE DATABASE home_app;
+```
+
+3. Copy the example environment file:
+
+```powershell
+cd server
+copy .env.example .env
+```
+
+4. Update `server/.env` if your MySQL user/password is different.
+
+5. Install backend dependencies:
+
+```bash
+npm install
+```
+
+6. Run the schema and seed files in MySQL:
+
+```sql
+USE home_app;
+source migrations/schema.sql;
+source migrations/seed.sql;
+```
+
+7. Start the real backend:
+
+```bash
+npm start
+```
+
+8. Start Flutter:
+
+```bash
+flutter run -d chrome
+```
+
+## Auth Notes
+
+For local development, `server/.env.example` enables:
+
+```env
+DEV_AUTH_ENABLED=true
+```
+
+That allows the Flutter login screen to use a token like:
+
+```http
+Authorization: Bearer dev:admin
+```
+
+For production, disable `DEV_AUTH_ENABLED` and configure Firebase service account credentials.
+
+## Useful Routes
+
+- `GET /health`
+- `GET /api/users/me`
+- `CRUD /api/hostels`
+- `CRUD /api/rooms`
+- `CRUD /api/storage-items`
+
+## Important
+
+Do not commit `server/.env`. Use `server/.env.example` as the shareable template.

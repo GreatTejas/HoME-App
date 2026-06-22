@@ -8,13 +8,15 @@ import '../../features/hostel/presentation/hostel_list_screen.dart';
 import '../../features/hostel/presentation/room_list_screen.dart';
 import '../../features/inspection/presentation/inspection_history_screen.dart';
 import '../../features/hostel/presentation/add_room_screen.dart';
+import '../../features/hostel/presentation/add_hostel_screen.dart';
+
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/login',
   //Add redirect logic here for Firebase Auth checking
-  
+
   routes: [
     // --- AUTH ROUTE ---
     GoRoute(
@@ -36,15 +38,21 @@ final GoRouter appRouter = GoRouter(
               builder: (context, state) => const HostelListScreen(),
               routes: [
                 GoRoute(
+                  path: 'add',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => const AddHostelScreen(),
+                ),
+                GoRoute(
                   path: ':hostelId/rooms',
                   builder: (context, state) {
-                    final hostelId = state.pathParameters['hostelId'];
-                    return RoomListScreen(hostelId: state.pathParameters['hostelId']!);
+                    return RoomListScreen(
+                        hostelId: state.pathParameters['hostelId']!);
                   },
                   routes: [
                     GoRoute(
                       path: 'add',
-                      parentNavigatorKey: _rootNavigatorKey, // Make it full screen
+                      parentNavigatorKey:
+                          _rootNavigatorKey, // Make it full screen
                       builder: (context, state) {
                         final hostelId = state.pathParameters['hostelId']!;
                         return AddRoomScreen(hostelId: hostelId);
@@ -73,7 +81,7 @@ final GoRouter appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'new/:roomId',
-                  parentNavigatorKey: _rootNavigatorKey, 
+                  parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
                     final roomId = state.pathParameters['roomId']!;
                     return InspectionFormScreen(roomId: roomId);

@@ -10,6 +10,23 @@ async function authMiddleware(req, res, next) {
       return res.status(401).json({ message: 'Authorization bearer token is required' });
     }
 
+    if (process.env.DEV_AUTH_ENABLED === 'true' && token.startsWith('dev:')) {
+      const userId = token.slice(4) || 'admin';
+      const [user] = await User.findOrCreate({
+        where: { id: userId },
+        defaults: {
+          id: userId,
+          name: userId === 'admin' ? 'Local Admin' : userId,
+          email: `${userId}@example.com`,
+          role: 'admin',
+        },
+      });
+
+      req.firebaseUser = { uid: user.id, dev: true };
+      req.user = user;
+      return next();
+    }
+
     const decodedToken = await admin.auth().verifyIdToken(token);
     const user = await User.findByPk(decodedToken.uid);
 

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 class MainShellScaffold extends StatelessWidget {
   const MainShellScaffold({
-    Key? key,
+    super.key,
     required this.navigationShell,
-  }) : super(key: key);
+  });
 
   /// The navigation shell handles the state of the branches and routing
   final StatefulNavigationShell navigationShell;
@@ -36,7 +37,7 @@ class MainShellScaffold extends StatelessWidget {
   void _goBranch(int index) {
     navigationShell.goBranch(
       index,
-      // : if the user taps the active tab, pop them back to the root of that branch 
+      // If the user taps the active tab, pop them back to that branch root.
       initialLocation: index == navigationShell.currentIndex,
     );
   }

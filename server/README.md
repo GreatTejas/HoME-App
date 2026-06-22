@@ -1,29 +1,49 @@
 # HoME App Backend
 
-Node.js, Express, Sequelize, MySQL, and Firebase Auth backend for the hostel management app.
+Node.js, Express, Sequelize, MySQL, and Firebase Admin backend for the hostel management app.
 
 ## Setup
 
-1. Install dependencies:
+1. Install and start MySQL.
+
+2. Create the database:
+
+```sql
+CREATE DATABASE home_app;
+```
+
+3. Install dependencies:
 
 ```bash
 npm install
 ```
 
-2. Copy the environment example:
+4. Copy the environment example:
 
-```bash
-cp .env.example .env
+```powershell
+copy .env.example .env
 ```
 
-3. Fill in MySQL and Firebase values in `.env`.
+5. Fill in MySQL values in `.env`.
 
-4. Create the database tables using `migrations/schema.sql`.
+For local development, keep:
 
-5. Start the server:
+```env
+DEV_AUTH_ENABLED=true
+```
+
+6. Run the database scripts:
+
+```sql
+USE home_app;
+source migrations/schema.sql;
+source migrations/seed.sql;
+```
+
+7. Start the server:
 
 ```bash
-npm run dev
+npm start
 ```
 
 ## Main Routes
@@ -35,7 +55,15 @@ npm run dev
 - `CRUD /api/rooms`
 - `CRUD /api/storage-items`
 
-All `/api/*` routes expect a Firebase ID token:
+## Auth
+
+Local development accepts:
+
+```http
+Authorization: Bearer dev:admin
+```
+
+Production should disable `DEV_AUTH_ENABLED` and use Firebase ID tokens:
 
 ```http
 Authorization: Bearer <firebase-id-token>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/api/api_client.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,10 +11,28 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
+  final _userIdController = TextEditingController(text: 'admin');
+  final _passwordController = TextEditingController();
 
-  void _handleLogin() async {
+  @override
+  void dispose() {
+    _userIdController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _handleLogin() {
+    final userId = _userIdController.text.trim();
+    if (userId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a User ID')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1)); // Mock delay
+    ApiClient.instance.setToken('dev:$userId');
+
     if (mounted) {
       context.go('/hostels');
     }
@@ -26,15 +45,15 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
+                const Text(
                   'Hostel Management',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF111114),
@@ -42,57 +61,41 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Welcome back! Please login to your account.',
+                  'Sign in with a local demo user.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 48),
-                
-                // Email Field
-                const Text('User ID or Email', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text('User ID',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextField(
+                  controller: _userIdController,
                   decoration: InputDecoration(
-                    hintText: 'you@example.com',
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    hintText: 'admin',
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
                 const SizedBox(height: 24),
-                
-                // Password Field
-                const Text('Password', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text('Password',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextField(
+                  controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    hintText: '••••••••',
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    hintText: 'Ignored in local demo mode',
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
+                        borderRadius: BorderRadius.circular(8)),
                   ),
+                  onSubmitted: (_) => _handleLogin(),
                 ),
                 const SizedBox(height: 32),
-                
-                // Login Button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
@@ -100,23 +103,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                        borderRadius: BorderRadius.circular(8)),
                     elevation: 0,
                   ),
-                  child: _isLoading 
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 24),
-                
-                // Sign Up Text
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Don\'t have an account? ', style: TextStyle(color: Colors.grey.shade700)),
-                    const Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-                  ],
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Login',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ],
             ),

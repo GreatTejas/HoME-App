@@ -1,14 +1,16 @@
-import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/api/api_client.dart';
 
 class AssetFormState {
   final int assetId;
   final String assetName;
   String condition;
   String notes;
-  File? localImageFile; // Upgraded from String to actual File object
+  Uint8List? imageBytes;
   String? maintenanceType;
 
   AssetFormState({
@@ -29,45 +31,82 @@ class InspectionFormScreen extends StatefulWidget {
 
 class _InspectionFormScreenState extends State<InspectionFormScreen> {
   bool _isLoading = false;
-  late List<AssetFormState> _assets;
+  late final List<AssetFormState> _assets;
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    // Mock fetched assets
     _assets = [
       AssetFormState(assetId: 1, assetName: 'Ceiling Fan'),
       AssetFormState(assetId: 2, assetName: 'Study Table'),
+      AssetFormState(assetId: 3, assetName: 'Light Fixture'),
+      AssetFormState(assetId: 4, assetName: 'Door Lock'),
     ];
   }
 
-  // --- Real Device Camera Logic ---
   Future<void> _takePicture(int index) async {
     try {
-      final XFile? photo = await _picker.pickImage(
+      final photo = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 70, // Compress slightly for Cloudinary
+        imageQuality: 70,
       );
-      
+
       if (photo != null) {
-        setState(() {
-          _assets[index].localImageFile = File(photo.path);
-        });
+        final bytes = await photo.readAsBytes();
+        setState(() => _assets[index].imageBytes = bytes);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to open camera: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to open camera: $e')),
+        );
+      }
     }
   }
 
-  void _submitInspection() async {
+  Future<void> _submitInspection() async {
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2)); // Mock API delay
-    // TODO: Upload each localImageFile via CloudinaryService here
-    if (mounted) {
-      context.pop();
+
+    try {
+      final damagedAssets =
+          _assets.where((asset) => asset.condition == 'damaged').toList();
+
+      if (damagedAssets.isEmpty) {
+        await ApiClient.instance.post('/api/storage-items', {
+          'roomId': int.tryParse(widget.roomId) ?? widget.roomId,
+          'description': 'Inspection completed: no damaged assets found',
+          'belongsTo': 'inspection',
+        });
+      }
+
+      for (final asset in damagedAssets) {
+        final photoUrl = asset.imageBytes == null
+            ? null
+            : 'data:image/jpeg;base64,${base64Encode(asset.imageBytes!)}';
+
+        await ApiClient.instance.post('/api/storage-items', {
+          'roomId': int.tryParse(widget.roomId) ?? widget.roomId,
+          'description':
+              '${asset.assetName}: ${asset.notes.trim().isEmpty ? 'Damaged' : asset.notes.trim()}',
+          'belongsTo': 'inspection',
+          'photoUrl': photoUrl,
+        });
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Inspection submitted')),
+        );
+        context.pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -77,7 +116,10 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
       backgroundColor: const Color(0xFFF7F7F9),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF7F7F9),
-        title: Text('Inspect Room ${widget.roomId}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        title: Text(
+          'Inspect Room ${widget.roomId}',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         centerTitle: true,
       ),
       body: ListView.builder(
@@ -100,15 +142,24 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- Header & Toggle ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(asset.assetName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Flexible(
+                        child: Text(
+                          asset.assetName,
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                       SegmentedButton<String>(
                         segments: const [
-                          ButtonSegment(value: 'working', icon: Icon(Icons.check_circle_outline)),
-                          ButtonSegment(value: 'damaged', icon: Icon(Icons.error_outline)),
+                          ButtonSegment(
+                              value: 'working',
+                              icon: Icon(Icons.check_circle_outline)),
+                          ButtonSegment(
+                              value: 'damaged',
+                              icon: Icon(Icons.error_outline)),
                         ],
                         selected: {asset.condition},
                         onSelectionChanged: (selection) {
@@ -116,7 +167,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                             asset.condition = selection.first;
                             if (asset.condition == 'working') {
                               asset.notes = '';
-                              asset.localImageFile = null;
+                              asset.imageBytes = null;
                               asset.maintenanceType = null;
                             }
                           });
@@ -124,8 +175,6 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                       ),
                     ],
                   ),
-
-                  // --- Damaged Item UI (Camera & Notes) ---
                   AnimatedSize(
                     duration: const Duration(milliseconds: 300),
                     child: isDamaged
@@ -133,8 +182,6 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Divider(height: 32),
-                              
-                              // Interactive Image Placeholder
                               GestureDetector(
                                 onTap: () => _takePicture(index),
                                 child: Container(
@@ -144,42 +191,36 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                                     color: Colors.grey.shade50,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: asset.localImageFile == null ? Colors.grey.shade300 : Colors.teal,
-                                      style: BorderStyle.solid,
-                                      width: 1,
+                                      color: asset.imageBytes == null
+                                          ? Colors.grey.shade300
+                                          : Colors.teal,
                                     ),
                                   ),
-                                  child: asset.localImageFile == null
+                                  child: asset.imageBytes == null
                                       ? Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.camera_alt_outlined, color: Colors.grey.shade400, size: 32),
+                                            Icon(Icons.camera_alt_outlined,
+                                                color: Colors.grey.shade400,
+                                                size: 32),
                                             const SizedBox(height: 8),
-                                            Text('Tap to take photo of damage', style: TextStyle(color: Colors.grey.shade500)),
+                                            Text(
+                                              'Tap to take photo of damage',
+                                              style: TextStyle(
+                                                  color: Colors.grey.shade500),
+                                            ),
                                           ],
                                         )
-                                      : Stack(
-                                          fit: StackFit.expand,
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius: BorderRadius.circular(11),
-                                              child: Image.file(asset.localImageFile!, fit: BoxFit.cover),
-                                            ),
-                                            Positioned(
-                                              top: 8, right: 8,
-                                              child: CircleAvatar(
-                                                backgroundColor: Colors.black54,
-                                                radius: 16,
-                                                child: const Icon(Icons.edit, size: 16, color: Colors.white),
-                                              ),
-                                            )
-                                          ],
+                                      : ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(11),
+                                          child: Image.memory(asset.imageBytes!,
+                                              fit: BoxFit.cover),
                                         ),
                                 ),
                               ),
                               const SizedBox(height: 16),
-
-                              // Notes
                               TextField(
                                 decoration: InputDecoration(
                                   hintText: 'Describe the damage...',
@@ -191,7 +232,7 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
                                   ),
                                 ),
                                 maxLines: 2,
-                                onChanged: (val) => asset.notes = val,
+                                onChanged: (value) => asset.notes = value,
                               ),
                             ],
                           )
@@ -205,18 +246,27 @@ class _InspectionFormScreenState extends State<InspectionFormScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: ElevatedButton(
             onPressed: _isLoading ? null : _submitInspection,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 54),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
             child: _isLoading
-                ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Text('Submit Inspection', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2),
+                  )
+                : const Text(
+                    'Submit Inspection',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
           ),
         ),
       ),
