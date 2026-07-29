@@ -3,10 +3,9 @@ const cors = require('cors');
 require('dotenv').config();
 
 const { sequelize } = require('./models');
-const userRoutes = require('./routes/userRoutes');
 const hostelRoutes = require('./routes/hostelRoutes');
 const roomRoutes = require('./routes/roomRoutes');
-const storageRoutes = require('./routes/storageRoutes');
+const inspectionRoutes = require('./routes/inspectionRoutes');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -18,17 +17,16 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.use('/api/users', userRoutes);
 app.use('/api/hostels', hostelRoutes);
 app.use('/api/rooms', roomRoutes);
-app.use('/api/storage-items', storageRoutes);
+app.use('/api/inspections', inspectionRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
 app.use((error, req, res, next) => {
-  const statusCode = error.name === 'SequelizeValidationError' ? 400 : 500;
+  const statusCode = error.statusCode || (error.name === 'SequelizeValidationError' || error.name === 'MulterError' ? 400 : 500);
 
   res.status(statusCode).json({
     message: error.message || 'Internal server error',

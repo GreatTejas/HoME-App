@@ -13,7 +13,7 @@ class HomeApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'HoME App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF173D32)),
         useMaterial3: true,
       ),
       routerConfig: appRouter,

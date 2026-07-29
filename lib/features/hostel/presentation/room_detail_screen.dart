@@ -7,118 +7,24 @@ class RoomDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final historyLogs = [
-      {
-        'date': '2024-07-25 09:00 AM',
-        'title': 'Leaving',
-        'desc': 'Student checked out of the room',
-        'image': null
-      },
-      {
-        'date': '2024-07-20 10:00 AM',
-        'title': 'Inspection',
-        'desc': 'Checked for damages and cleanliness',
-        'image': 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&q=80&w=200'
-      },
+    const logs = [
+      ('Check-in inspection', '12 Jul 2026', 'Handover inspection', 'All items in good condition', Icons.login_rounded),
+      ('Maintenance review', '03 Jul 2026', 'Facilities team', 'Desk lamp replaced', Icons.build_outlined),
+      ('Check-out inspection', '22 Dec 2025', 'Handover inspection', 'No damages recorded', Icons.logout_rounded),
     ];
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F9),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F7F9),
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text(
-          'Room Details',
-          style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: ListView(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Room $roomId', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text('Ravi Kumar – CS23B045', style: TextStyle(fontSize: 16, color: Colors.grey.shade600)),
-              ],
-            ),
-          ),
-          
-          const Divider(height: 1, color: Colors.black12),
-          
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('History', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                
-                // NO const here, because historyLogs is dynamic
-                ...historyLogs.map((log) => Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))
-                    ]
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(log['date'] as String, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-                            const SizedBox(height: 6),
-                            Text(log['title'] as String, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Text(log['desc'] as String, style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.3)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: log['image'] != null
-                          ? Image.network(
-                              log['image'] as String,
-                              width: 80, height: 80, fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                width: 80, height: 80, color: Colors.red.shade50,
-                                child: const Icon(Icons.broken_image_outlined, color: Colors.red),
-                              ),
-                            )
-                          : Container(
-                              width: 80, height: 80, color: Colors.grey.shade100,
-                              child: const Icon(Icons.image_outlined, color: Colors.grey),
-                            ),
-                      )
-                    ],
-                  ),
-                )).toList(), // .toList() is required when using the spread operator (...)
-              ],
-            ),
-          )
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        onPressed: () => context.push('/inspections/new/$roomId'),
-        icon: const Icon(Icons.add_task),
-        label: const Text('New Inspection'),
-      ),
+      backgroundColor: const Color(0xFFFCFCFA),
+      appBar: AppBar(backgroundColor: const Color(0xFFFCFCFA), elevation: 0, surfaceTintColor: Colors.transparent, leading: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back)), title: const Text('Room details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+      body: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 20, 108), children: [
+        Text('Room $roomId', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -0.6)),
+        const SizedBox(height: 24),
+        Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFFF0F5F1), borderRadius: BorderRadius.circular(16)), child: const Row(children: [Icon(Icons.verified_outlined, color: Color(0xFF2D6948)), SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Last inspection complete', style: TextStyle(fontWeight: FontWeight.w700)), SizedBox(height: 2), Text('12 Jul 2026 - signed by student and security', style: TextStyle(fontSize: 12, color: Color(0xFF5F6C62)))]))])),
+        const SizedBox(height: 30),
+        const Text('Inspection history', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 14),
+        ...logs.map((log) => Container(margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(0xFFE7E9E5)), borderRadius: BorderRadius.circular(16)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFFF1F4F0), borderRadius: BorderRadius.circular(10)), child: Icon(log.$5, color: const Color(0xFF173D32), size: 20)), const SizedBox(width: 13), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(log.$1, style: const TextStyle(fontWeight: FontWeight.w700)), const SizedBox(height: 4), Text(log.$2, style: const TextStyle(fontSize: 12, color: Color(0xFF737A74))), const SizedBox(height: 7), Text(log.$3, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)), const SizedBox(height: 3), Text(log.$4, style: const TextStyle(fontSize: 13, color: Color(0xFF656B66)))])), const Icon(Icons.chevron_right, color: Color(0xFF939993))]))),
+      ]),
+      floatingActionButton: FloatingActionButton.extended(onPressed: () => context.push('/inspections/new/$roomId'), backgroundColor: const Color(0xFF173D32), foregroundColor: Colors.white, elevation: 0, icon: const Icon(Icons.add), label: const Text('Add inspection', style: TextStyle(fontWeight: FontWeight.w700))),
     );
   }
 }

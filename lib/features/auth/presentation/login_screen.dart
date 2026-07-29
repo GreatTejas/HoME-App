@@ -9,116 +9,75 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _hostelController = TextEditingController(text: 'Abheri');
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  void _handleLogin() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1)); // Mock delay
-    if (mounted) {
-      context.go('/hostels');
-    }
+  @override
+  void dispose() {
+    _hostelController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
+
+  Future<void> _handleLogin() async {
+    if (_hostelController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter your hostel ID to continue.')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 650));
+    if (mounted) context.go('/hostels/${_hostelController.text.trim()}/rooms');
+  }
+
+  InputDecoration _fieldDecoration(String hint, IconData icon) => InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon, color: const Color(0xFF5E645F)),
+        filled: true,
+        fillColor: const Color(0xFFF6F7F5),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFCFCFA),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Hostel Management',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF111114),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Welcome back! Please login to your account.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                
-                // Email Field
-                const Text('User ID or Email', style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'you@example.com',
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+            padding: const EdgeInsets.all(28),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 42),
+                  const Text('HOSTEL ID', style: TextStyle(fontSize: 12, letterSpacing: 1, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  TextField(controller: _hostelController, textCapitalization: TextCapitalization.characters, decoration: _fieldDecoration('e.g. Abheri', Icons.apartment_outlined)),
+                  const SizedBox(height: 22),
+                  const Text('PASSWORD', style: TextStyle(fontSize: 12, letterSpacing: 1, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  TextField(controller: _passwordController, obscureText: true, decoration: _fieldDecoration('Enter your password', Icons.lock_outline)),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF173D32), foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(56), elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
+                    child: _isLoading ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Continue', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
-                ),
-                const SizedBox(height: 24),
-                
-                // Password Field
-                const Text('Password', style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                TextField(
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: '••••••••',
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                
-                // Login Button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleLogin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading 
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 24),
-                
-                // Sign Up Text
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Don\'t have an account? ', style: TextStyle(color: Colors.grey.shade700)),
-                    const Text('Sign Up', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: 18),
+                ],
+              ),
             ),
           ),
         ),

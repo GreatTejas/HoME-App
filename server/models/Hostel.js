@@ -30,16 +30,6 @@ const Hostel = sequelize.define(
         key: 'id',
       },
     },
-    totalRooms: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
-      field: 'total_rooms',
-    },
-    totalStudents: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
-      field: 'total_students',
-    },
     createdBy: {
       type: DataTypes.STRING(128),
       field: 'created_by',

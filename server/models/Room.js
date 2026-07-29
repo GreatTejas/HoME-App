@@ -23,21 +23,6 @@ const Room = sequelize.define(
       allowNull: false,
       field: 'room_number',
     },
-    roomType: {
-      type: DataTypes.ENUM('common', 'standard', 'study', 'other'),
-      field: 'room_type',
-    },
-    capacity: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 1,
-    },
-    occupancyCount: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      field: 'occupancy_count',
-    },
     createdBy: {
       type: DataTypes.STRING(128),
       field: 'created_by',
